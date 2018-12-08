@@ -11,8 +11,8 @@ import java.util.List;
 
 public interface StudentRepository {
     void addNewStudent(Student student) throws MissingArgumentException, IndexFormatException, StudyProgramNotFoundException;
-    void deleteStudent(String index);
-    void updateStudent(Student student);
+    void deleteStudent(String index) throws StudentNotFoundException;
+    void updateStudent(Student student) throws StudentNotFoundException;
     Student getStudentByIndex(String index) throws StudentNotFoundException;
     List<StudentDto> listAllStudents();
     List<StudentDto> listStudentsByProgram(long program);

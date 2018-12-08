@@ -1,5 +1,6 @@
 package mk.finki.ukim.wp.organizeme.persistance.implementations;
 
+import mk.finki.ukim.wp.organizeme.controllers.StudentsController;
 import mk.finki.ukim.wp.organizeme.models.Student;
 import mk.finki.ukim.wp.organizeme.models.StudyProgram;
 import mk.finki.ukim.wp.organizeme.models.dtos.StudentDto;
@@ -9,10 +10,12 @@ import mk.finki.ukim.wp.organizeme.models.exceptions.StudentNotFoundException;
 import mk.finki.ukim.wp.organizeme.models.exceptions.StudyProgramNotFoundException;
 import mk.finki.ukim.wp.organizeme.persistance.StudentRepository;
 import mk.finki.ukim.wp.organizeme.persistance.StudyProgramRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class StudentRepositoryImpl implements StudentRepository , StudyProgramRepository {
 
 
@@ -29,15 +32,38 @@ public class StudentRepositoryImpl implements StudentRepository , StudyProgramRe
     }
 
     @Override
-    public void deleteStudent(String index) {
-        StudentsInMemoryDatabase.Students.removeIf(x->x.index.equals(index));
+    public void deleteStudent(String index) throws StudentNotFoundException {
+        if(!StudentsInMemoryDatabase.Students.removeIf(x->x.index.equals(index)))
+            throw new StudentNotFoundException("Student was not found");
     }
 
     @Override
-    public void updateStudent(Student student) {
+    public void updateStudent(Student student) throws StudentNotFoundException {
+
+        boolean flag=true;
+
         for (Student s : StudentsInMemoryDatabase.Students) {
-            if (s.id==student.id)
-                s=student;
+            if (s.id==student.id) {
+                flag=false;
+
+                s.index=student.index;
+                if (!student.name.isEmpty())
+                    s.name=student.name;
+
+                if (!student.lastName.isEmpty())
+                    s.lastName=student.lastName;
+
+                if (!student.studyProgram.name.isEmpty())
+                    {
+                        final StudyProgram[] sp = new StudyProgram[1];
+                        StudentsInMemoryDatabase.StudyPrograms.forEach(x->{if(x.name.equals(student.studyProgram.name)) sp[0] =x;});
+                        if(sp[0]!=null)
+                            s.studyProgram=sp[0];
+                    }
+            }
+
+            if (flag)
+                throw new StudentNotFoundException("Student was not found");
         }
     }
 
